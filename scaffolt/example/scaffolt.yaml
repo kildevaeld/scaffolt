@@ -3,9 +3,14 @@ tasks:
  - name: npm
    before:
     type: Javascript
-    path: script/npm-before.js
+    path: scripts/npm-before.js
    questions:
      name:
        type: input
      version:
        type: input
+       default: 0.0.1
+files:
+ - source: src/index.html
+   target: index.html
+   interpolate: true

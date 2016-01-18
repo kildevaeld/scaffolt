@@ -1,23 +1,36 @@
 package javascript
 
-import "github.com/kildevaeld/scaffolt"
+import (
+	"github.com/kildevaeld/motto"
+	"github.com/kildevaeld/scaffolt"
+)
 
-type jsscript struct {
-	path string
+type engine struct {
+	engine *motto.Motto
 }
 
-func (self jsscript) Type() scaffolt.IntepreterType {
-	return scaffolt.Javascript
-}
+func (self *engine) Init(g scaffolt.Generator) error {
 
-func (self *jsscript) Run(ctx scaffolt.Context) error {
+	engine := motto.New()
+
+	self.engine = engine
+
+	go engine.RunLoop.Run()
+
 	return nil
 }
 
-func (self jsscript) Init(g scaffolt.Generator) error {
+func (self *engine) Run(path string, ctx scaffolt.Context) error {
+
+	self.engine.Require(path, ctx.Source())
+
 	return nil
 }
 
-func New(path string) scaffolt.Script {
-	return &jsscript{path}
+func (self *engine) Close() {
+	self.engine.RunLoop.Stop()
+}
+
+func NewEngine() scaffolt.ScriptEngine {
+	return &engine{}
 }

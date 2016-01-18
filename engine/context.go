@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -22,7 +23,7 @@ func (self *context) Source() string {
 	return self.generator.(*generator).path
 }
 
-func (self *Context) Target() string {
+func (self *context) Target() string {
 	return self.target
 }
 
@@ -44,13 +45,21 @@ func (self *context) CreateFile(path string, content []byte) error {
 		return errors.New("exists")
 	}
 
-	base := filepath.Base(fullpath)
+	log.Printf("Creating file %s", fullpath)
+	dir := filepath.Dir(fullpath)
 
-	if !Exists(base) {
-		os.MkdirAll(base, 0755)
+	if !Exists(dir) {
+		log.Printf("  Creating dir %s", dir)
+		os.MkdirAll(dir, 0755)
+	}
+	log.Printf("  Writing file %s", fullpath)
+	e := ioutil.WriteFile(fullpath, content, 0755)
+
+	if e != nil {
+		return e
 	}
 
-	ioutil.WriteFile(fullpath, content, 0755)
+	log.Printf("  Written %d", len(content))
 
 	return nil
 }

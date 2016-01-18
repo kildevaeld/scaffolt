@@ -16,20 +16,19 @@ type file struct {
 }
 
 func (self *file) Run(ctx scaffolt.Context) error {
-	var buf bytes.Buffer
-	err := self.template.Execute(&buf, ctx.Locals())
+	buf := bytes.NewBuffer(nil)
+
+	err := self.template.Execute(buf, ctx.Locals())
 	if err != nil {
 		return err
 	}
 
-	fp := filepath.Join(ctx.Target(), self.desc.Target)
-
-	err = ctx.CreateFile(fp, buf.Bytes())
+	err = ctx.CreateFile(self.desc.Target, buf.Bytes())
 
 	return err
 }
 
-func (self file) Init(g scaffolt.Generator) error {
+func (self *file) Init(g scaffolt.Generator) error {
 
 	fp := filepath.Join(g.Root(), self.desc.Source)
 

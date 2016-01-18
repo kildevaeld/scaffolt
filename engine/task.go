@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"log"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -75,22 +76,27 @@ func (self *task) runHook(hook Hook, ctx scaffolt.Context) error {
 }
 
 func (self *task) Init(g scaffolt.Generator) error {
+	log.Printf("Initialize task: %s\n", self.desc.Name)
 	self.scripts = make(map[Hook]scaffolt.Script)
 
 	if self.desc.Before.Path != "" {
-		self.scripts[Before] = vm.NewScript(self.desc.Before)
+		log.Printf("  Adding before: script %s, type: %s\n", self.desc.Before.Path, self.desc.Before.Type)
+		self.scripts[Before] = vm.NewScript(g.Engine(self.desc.Before.Type), self.desc.Before)
 	}
 	if self.desc.After.Path != "" {
-		self.scripts[After] = vm.NewScript(self.desc.After)
+		log.Printf("  Adding after: script %s, type: %s\n", self.desc.After.Path, self.desc.Before.Type)
+		self.scripts[After] = vm.NewScript(g.Engine(self.desc.After.Type), self.desc.After)
 	}
 
 	for _, script := range self.scripts {
+		log.Printf("  Initializing script: %s\n", script.Type())
 		if err := script.Init(g); err != nil {
 			return err
 		}
 	}
 
 	for _, fileDesc := range self.desc.Files {
+		log.Printf("  Initializing file: %s\n", fileDesc.Source)
 		file := NewFile(fileDesc)
 		if err := file.Init(g); err != nil {
 			return err

@@ -30,4 +30,11 @@ type Generator interface {
 	Init() error
 	Run(path string) error
 	Root() string
+	Engine(IntepreterType) ScriptEngine
+}
+
+type ScriptEngine interface {
+	Init(g Generator) error
+	Run(path string, ctx Context) error
+	Close()
 }

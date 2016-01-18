@@ -4,6 +4,7 @@ type GeneratorDescription struct {
 	Name        string
 	Description string
 	Tasks       []TaskDescription
+	Files       []FileDescription
 }
 
 type TaskDescription struct {

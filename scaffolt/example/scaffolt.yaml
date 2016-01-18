@@ -1,0 +1,11 @@
+name: Node
+tasks:
+ - name: npm
+   before:
+    type: Javascript
+    path: script/npm-before.js
+   questions:
+     name:
+       type: input
+     version:
+       type: input

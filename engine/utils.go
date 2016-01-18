@@ -1,6 +1,12 @@
 package engine
 
-import "os"
+import (
+	"bytes"
+	"os"
+	"text/template"
+
+	"github.com/kildevaeld/scaffolt"
+)
 
 func Exists(path string) bool {
 	_, err := os.Stat(path)
@@ -22,4 +28,18 @@ func IsFile(path string) bool {
 		return !stat.IsDir()
 	}
 	return false
+}
+
+func Interpolate(name, str string, ctx scaffolt.Context) (string, error) {
+	t, err := template.New(name).Parse(str)
+
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	err = t.Execute(&buf, ctx.Locals())
+	if err != nil {
+		return "", err
+	}
+	return string(buf.Bytes())
 }

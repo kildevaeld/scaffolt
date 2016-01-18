@@ -1,30 +1,28 @@
-package scaffolt
+package engine
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/kildevaeld/scaffolt"
 )
-
-type Generator interface {
-	Description() GeneratorDescription
-	Init() error
-	Run(path string) error
-}
 
 type generator struct {
 	path  string
-	desc  *GeneratorDescription
+	desc  scaffolt.GeneratorDescription
 	once  sync.Once
-	tasks []Task
+	tasks []scaffolt.Task
 }
 
-func (self *generator) Description() GeneratorDescription {
-	return *self.desc
+func (self *generator) Root() string {
+	return self.path
+}
+
+func (self *generator) Description() scaffolt.GeneratorDescription {
+	return self.desc
 }
 
 func (self *generator) Run(path string) error {
@@ -54,9 +52,6 @@ func (self *generator) Run(path string) error {
 }
 
 func (self *generator) Init() error {
-	if self.desc == nil {
-		return errors.New("no description")
-	}
 
 	var result error
 
@@ -64,7 +59,7 @@ func (self *generator) Init() error {
 
 		for _, desc := range self.desc.Tasks {
 			task := NewTask(desc)
-			if err := task.Init(); err != nil {
+			if err := task.Init(self); err != nil {
 				result = multierror.Append(result, err)
 			}
 			self.tasks = append(self.tasks, task)
@@ -75,7 +70,7 @@ func (self *generator) Init() error {
 	return result
 }
 
-func NewGenerator(path string, description *GeneratorDescription) Generator {
+func NewGenerator(path string, description scaffolt.GeneratorDescription) scaffolt.Generator {
 	return &generator{
 		path: path,
 		desc: description,

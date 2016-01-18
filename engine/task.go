@@ -1,9 +1,11 @@
-package scaffolt
+package engine
 
 import (
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/kildevaeld/scaffolt"
+	"github.com/kildevaeld/scaffolt/vm"
 )
 
 type Hook int
@@ -13,20 +15,15 @@ const (
 	After
 )
 
-type Task interface {
-	Run(ctx Context) error
-	Init() error
-}
-
 type task struct {
-	desc      TaskDescription
-	scripts   map[Hook]Script
-	files     []File
+	desc      scaffolt.TaskDescription
+	scripts   map[Hook]scaffolt.Script
+	files     []scaffolt.File
 	questions *Questions
 	once      sync.Once
 }
 
-func (self *task) Run(ctx Context) error {
+func (self *task) Run(ctx scaffolt.Context) error {
 
 	if err := self.runHook(Before, ctx); err != nil {
 		return err
@@ -47,7 +44,7 @@ func (self *task) Run(ctx Context) error {
 	return nil
 }
 
-func (self *task) runFiles(ctx Context) error {
+func (self *task) runFiles(ctx scaffolt.Context) error {
 	var wg sync.WaitGroup
 	var lock sync.Mutex
 	var err error
@@ -68,7 +65,7 @@ func (self *task) runFiles(ctx Context) error {
 
 }
 
-func (self *task) runHook(hook Hook, ctx Context) error {
+func (self *task) runHook(hook Hook, ctx scaffolt.Context) error {
 
 	if script, ok := self.scripts[hook]; ok {
 		return script.Run(ctx)
@@ -77,25 +74,25 @@ func (self *task) runHook(hook Hook, ctx Context) error {
 	return nil
 }
 
-func (self *task) Init() error {
-	self.scripts = make(map[Hook]Script)
+func (self *task) Init(g scaffolt.Generator) error {
+	self.scripts = make(map[Hook]scaffolt.Script)
 
 	if self.desc.Before.Path != "" {
-		self.scripts[Before] = NewScript(self.desc.Before)
+		self.scripts[Before] = vm.NewScript(self.desc.Before)
 	}
 	if self.desc.After.Path != "" {
-		self.scripts[After] = NewScript(self.desc.After)
+		self.scripts[After] = vm.NewScript(self.desc.After)
 	}
 
 	for _, script := range self.scripts {
-		if err := script.Init(); err != nil {
+		if err := script.Init(g); err != nil {
 			return err
 		}
 	}
 
 	for _, fileDesc := range self.desc.Files {
 		file := NewFile(fileDesc)
-		if err := file.Init(); err != nil {
+		if err := file.Init(g); err != nil {
 			return err
 		}
 		self.files = append(self.files, file)
@@ -109,7 +106,7 @@ func (self *task) Init() error {
 	return nil
 }
 
-func NewTask(desc TaskDescription) Task {
+func NewTask(desc scaffolt.TaskDescription) scaffolt.Task {
 	return &task{
 		desc: desc,
 	}

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/kildevaeld/scaffolt"
+	"github.com/kildevaeld/scaffolt/parser"
 )
 
 func main() {
-	gen, err := scaffolt.LoadGeneratorFromPath("example")
+	gen, err := parser.LoadGeneratorFromPath("example")
 	if err != nil {
 		log.Fatal(err)
 	}

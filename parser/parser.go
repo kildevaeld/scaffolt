@@ -1,4 +1,4 @@
-package scaffolt
+package parser
 
 import (
 	"encoding/json"
@@ -8,19 +8,21 @@ import (
 	"path/filepath"
 
 	"github.com/ghodss/yaml"
+	"github.com/kildevaeld/scaffolt"
+	"github.com/kildevaeld/scaffolt/engine"
 )
 
 const (
 	GeneratorDescriptionFile = "scaffolt"
 )
 
-func LoadGeneratorFromPath(path string) (Generator, error) {
+func LoadGeneratorFromPath(path string) (scaffolt.Generator, error) {
 	var e error
 	path, e = filepath.Abs(path)
 	if e != nil {
 		return nil, nil
 	}
-	if !IsDir(path) {
+	if !engine.IsDir(path) {
 		return nil, fmt.Errorf("Path does not exists or isn't a directory: %s", path)
 	}
 
@@ -30,8 +32,8 @@ func LoadGeneratorFromPath(path string) (Generator, error) {
 		return nil, err
 	}
 
-	gen := NewGenerator(path, descFile)
-	//context := utils.NewMap()
+	gen := engine.NewGenerator(path, *descFile)
+
 	if err = gen.Init(); err != nil {
 		return nil, err
 	}
@@ -39,15 +41,15 @@ func LoadGeneratorFromPath(path string) (Generator, error) {
 	return gen, nil
 }
 
-func getDescriptionFile(path string) (*GeneratorDescription, error) {
+func getDescriptionFile(path string) (*scaffolt.GeneratorDescription, error) {
 	fullPath := filepath.Join(path, GeneratorDescriptionFile)
-	var m GeneratorDescription
+	var m scaffolt.GeneratorDescription
 	var t string
-	if IsFile(fullPath + ".json") {
+	if engine.IsFile(fullPath + ".json") {
 		t = "json"
-	} else if IsFile(fullPath + ".yaml") {
+	} else if engine.IsFile(fullPath + ".yaml") {
 		t = "yaml"
-	} else if IsFile(fullPath + "yml") {
+	} else if engine.IsFile(fullPath + "yml") {
 		t = "yml"
 	} else {
 		return nil, fmt.Errorf("Could not find a generator description in path: %s", path)

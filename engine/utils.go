@@ -41,5 +41,5 @@ func Interpolate(name, str string, ctx scaffolt.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(buf.Bytes())
+	return string(buf.Bytes()), nil
 }

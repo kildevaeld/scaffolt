@@ -2,7 +2,9 @@ package javascript
 
 import (
 	"github.com/kildevaeld/motto"
+	_ "github.com/kildevaeld/motto/underscore"
 	"github.com/kildevaeld/scaffolt"
+	"github.com/robertkrimen/otto"
 )
 
 type engine struct {
@@ -21,8 +23,30 @@ func (self *engine) Init(g scaffolt.Generator) error {
 }
 
 func (self *engine) Run(path string, ctx scaffolt.Context) error {
+	/*val, err := self.engine.ToValue(ctx)
+	if err != nil {
+		return err
+	}*/
+	c := &context{ctx, self.engine}
+	//self.engine.Set("context", c)
+	value, err := self.engine.Require(path, ctx.Source())
 
-	self.engine.Require(path, ctx.Source())
+	if err != nil {
+		return err
+	}
+
+	if value.IsFunction() {
+		value.Call(otto.UndefinedValue(), c)
+	} else if value.IsObject() {
+		v := value.Object()
+		prop := "run"
+		if Contains(v.Keys(), "run") {
+			prop = "run"
+		} else if Contains(v.Keys(), "Run") {
+			prop = "Run"
+		}
+		v.Call(prop, c)
+	}
 
 	return nil
 }

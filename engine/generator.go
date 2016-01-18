@@ -66,6 +66,8 @@ func (self *generator) Run(path string) error {
 			return err
 		}
 	}
+	fmt.Printf("Locals %v", ctx.Locals())
+
 	log.Printf("Running files")
 	if err := self.runFiles(ctx); err != nil {
 		os.RemoveAll(path)

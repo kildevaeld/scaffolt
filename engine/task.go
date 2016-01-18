@@ -2,9 +2,11 @@ package engine
 
 import (
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/kildevaeld/blueprint/store/utils"
 	"github.com/kildevaeld/scaffolt"
 	"github.com/kildevaeld/scaffolt/vm"
 )
@@ -16,6 +18,51 @@ const (
 	After
 )
 
+type taskContext struct {
+	ctx  scaffolt.Context
+	task string
+}
+
+func (self *taskContext) Source() string {
+	return self.ctx.Source()
+}
+
+func (self *taskContext) Target() string {
+	return self.ctx.Target()
+}
+
+func (self *taskContext) Set(key string, value interface{}) {
+	fk := key
+	if !strings.HasPrefix(key, self.task+".") {
+		fk = self.task + "." + key
+	}
+	self.ctx.Set(fk, value)
+}
+
+func (self *taskContext) Get(key string) interface{} {
+	fk := key
+	if key != self.task && !strings.Contains(key, ".") {
+		fk = self.task + "." + key
+	}
+	return self.ctx.Get(fk)
+}
+
+func (self *taskContext) CreateFile(path string, content []byte) error {
+	return self.ctx.CreateFile(path, content)
+}
+
+func (self *taskContext) Locals() map[string]interface{} {
+	return self.ctx.Locals()
+}
+
+func (self *taskContext) Exec(c string, args ...string) error {
+	return self.ctx.Exec(c, args...)
+}
+
+func (self *taskContext) Move(source, target string, interpolate bool) {
+	self.ctx.Move(source, target, interpolate)
+}
+
 type task struct {
 	desc      scaffolt.TaskDescription
 	scripts   map[Hook]scaffolt.Script
@@ -25,6 +72,8 @@ type task struct {
 }
 
 func (self *task) Run(ctx scaffolt.Context) error {
+	ctx.Set(self.desc.Name, utils.NewMap())
+	ctx = &taskContext{ctx, self.desc.Name}
 
 	if err := self.runHook(Before, ctx); err != nil {
 		return err
@@ -73,6 +122,10 @@ func (self *task) runHook(hook Hook, ctx scaffolt.Context) error {
 	}
 
 	return nil
+}
+
+func (self *task) Name() string {
+	return self.desc.Name
 }
 
 func (self *task) Init(g scaffolt.Generator) error {

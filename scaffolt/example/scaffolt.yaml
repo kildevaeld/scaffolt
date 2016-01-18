@@ -1,16 +1,28 @@
 name: Node
 tasks:
  - name: npm
-   before:
+   after:
     type: Javascript
-    path: scripts/npm-before.js
+    path: scripts/after-npm.js
    questions:
      name:
        type: input
      version:
        type: input
        default: 0.0.1
+     language:
+        type: list
+        choices: ["javascript", "typescript"]
+     type:
+        type: checkbox
+        choices: ["nodejs", "browser"]
+     build:
+        type: list
+        choices: ["gulp", "grunt"]
+     test:
+        type: list
+        choices: ["mocha", "jasmine","none"]
 files:
- - source: src/index.html
-   target: index.html
+ - source: src/index.js
+   target: index.js
    interpolate: true

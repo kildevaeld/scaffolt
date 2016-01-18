@@ -4,6 +4,8 @@ type Context interface {
 	Get(key string) interface{}
 	Set(key string, value interface{})
 	CreateFile(path string, content []byte) error
+	Exec(cmd string, args ...string) error
+	Move(source, target string, interpolate bool)
 	Target() string
 	Source() string
 	Locals() map[string]interface{}
@@ -23,6 +25,7 @@ type Script interface {
 type Task interface {
 	Run(ctx Context) error
 	Init(g Generator) error
+	Name() string
 }
 
 type Generator interface {

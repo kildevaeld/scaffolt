@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 
@@ -37,6 +38,30 @@ func (self *context) Get(key string) interface{} {
 	self.lock.RLock()
 	defer self.lock.RUnlock()
 	return self.m.Get(key)
+}
+
+func (self *context) Exec(c string, args ...string) error {
+	cmd := exec.Command(c, args...)
+	cmd.Env = os.Environ()
+	cmd.Dir = self.target
+	return cmd.Run()
+}
+
+func (self *context) Move(source, target string, interpolate bool) {
+	bs, err := ioutil.ReadFile(filepath.Join(self.Source(), source))
+	if err != nil {
+		return
+	}
+
+	base := filepath.Base(source)
+
+	str, e := Interpolate(base, string(bs), self)
+	if e != nil {
+		return
+	}
+
+	self.CreateFile(target, []byte(str))
+
 }
 
 func (self *context) CreateFile(path string, content []byte) error {

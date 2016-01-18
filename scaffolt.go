@@ -6,6 +6,7 @@ type Context interface {
 	CreateFile(path string, content []byte) error
 	Target() string
 	Source() string
+	Locals() map[string]interface{}
 }
 
 type File interface {

@@ -29,8 +29,9 @@ type QuestionDescription struct {
 }
 
 type FileDescription struct {
-	Source string
-	Target string
-	Before ScriptDescription
-	After  ScriptDescription
+	Source      string
+	Target      string
+	Interpolate bool
+	Before      ScriptDescription
+	After       ScriptDescription
 }

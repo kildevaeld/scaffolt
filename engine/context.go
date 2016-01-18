@@ -55,6 +55,10 @@ func (self *context) CreateFile(path string, content []byte) error {
 	return nil
 }
 
+func (self *context) Locals() map[string]interface{} {
+	return self.m
+}
+
 func NewContext(gen scaffolt.Generator, target string) scaffolt.Context {
 	return &context{
 		target:    target,

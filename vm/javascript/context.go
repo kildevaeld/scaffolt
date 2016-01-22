@@ -2,7 +2,6 @@ package javascript
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/kildevaeld/blueprint/store/utils"
@@ -111,7 +110,7 @@ func (self *context) Locals() map[string]interface{} {
 }
 
 func (self *context) Move(call otto.FunctionCall) otto.Value {
-	fmt.Printf("MOVE %v", call)
+
 	if len(call.ArgumentList) < 2 {
 		return otto.UndefinedValue()
 	}

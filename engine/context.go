@@ -1,14 +1,11 @@
 package engine
 
 import (
-	"errors"
-	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sync"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/kildevaeld/blueprint/store/utils"
 	"github.com/kildevaeld/scaffolt"
 )
@@ -18,6 +15,7 @@ type context struct {
 	generator scaffolt.Generator
 	m         utils.Map
 	lock      sync.RWMutex
+	l         *logrus.Entry
 }
 
 func (self *context) Source() string {
@@ -48,55 +46,39 @@ func (self *context) Exec(c string, args ...string) error {
 }
 
 func (self *context) Move(source, target string, interpolate bool) {
-	bs, err := ioutil.ReadFile(filepath.Join(self.Source(), source))
-	if err != nil {
-		return
-	}
 
-	base := filepath.Base(source)
-
-	str, e := Interpolate(base, string(bs), self)
-	if e != nil {
-		return
-	}
-
-	self.CreateFile(target, []byte(str))
+	self.generator.AddFile(scaffolt.FileDescription{
+		Interpolate: interpolate,
+		Source:      source,
+		Target:      target,
+	})
 
 }
 
 func (self *context) CreateFile(path string, content []byte) error {
-	fullpath := filepath.Join(self.target, path)
-	if IsDir(fullpath) {
-		return errors.New("exists")
-	}
 
-	log.Printf("Creating file %s", fullpath)
-	dir := filepath.Dir(fullpath)
-
-	if !Exists(dir) {
-		log.Printf("  Creating dir %s", dir)
-		os.MkdirAll(dir, 0755)
-	}
-	log.Printf("  Writing file %s", fullpath)
-	e := ioutil.WriteFile(fullpath, content, 0755)
-
-	if e != nil {
-		return e
-	}
-
-	log.Printf("  Written %d", len(content))
+	self.generator.AddFile(scaffolt.FileDescription{
+		Interpolate: true,
+		Target:      path,
+		Content:     string(content),
+	})
 
 	return nil
+}
+
+func (self *context) Generator() scaffolt.Generator {
+	return self.generator
 }
 
 func (self *context) Locals() map[string]interface{} {
 	return self.m
 }
 
-func NewContext(gen scaffolt.Generator, target string) scaffolt.Context {
+func NewContext(gen scaffolt.Generator, target string, log *logrus.Entry) scaffolt.Context {
 	return &context{
 		target:    target,
 		generator: gen,
 		m:         utils.NewMap(),
+		l:         log,
 	}
 }

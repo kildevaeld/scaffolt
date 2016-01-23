@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/hashicorp/go-multierror"
 	"github.com/kildevaeld/scaffolt"
 	"github.com/kildevaeld/scaffolt/vm/javascript"
+	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 )
 
 type generator struct {
@@ -21,6 +23,7 @@ type generator struct {
 	files       []scaffolt.File
 	initialized bool
 	engines     map[scaffolt.IntepreterType]scaffolt.ScriptEngine
+	l           *logrus.Logger
 }
 
 func (self *generator) Root() string {
@@ -38,14 +41,14 @@ func (self *generator) Run(path string) error {
 	}
 
 	for k, engine := range self.engines {
-		log.Printf("  Starting engine: %s", k)
+		self.l.Printf("Starting engine: %s", k)
 		if err := engine.Init(self); err != nil {
 			return err
 		}
 		defer engine.Close()
 	}
 
-	ctx := NewContext(self, path)
+	ctx := NewContext(self, path, self.l.WithField("prefix", "context"))
 
 	var err error
 	if path, err = filepath.Abs(path); err != nil {
@@ -59,17 +62,21 @@ func (self *generator) Run(path string) error {
 	if err = os.MkdirAll(path, 0755); err != nil {
 		return err
 	}
-	log.Printf("Running tasks")
+
+	base := filepath.Base(path)
+	ctx.Set("BASE", base)
+	ctx.Set("TARGET_DIR", path)
+
+	self.l.Printf("Running tasks")
 	for _, task := range self.tasks {
 		if err = task.Run(ctx); err != nil {
 			os.RemoveAll(path)
 			return err
 		}
 	}
-	fmt.Printf("Locals %v", ctx.Locals())
 
 	log.Printf("Running files")
-	if err := self.runFiles(ctx); err != nil {
+	if err := self.runFiles(ctx, false); err != nil {
 		os.RemoveAll(path)
 		return err
 	}
@@ -81,19 +88,30 @@ func (self *generator) Engine(engine scaffolt.IntepreterType) scaffolt.ScriptEng
 	return self.engines[engine]
 }
 
+func (self *generator) AddFile(file scaffolt.FileDescription) error {
+
+	self.files = append(self.files, NewFile(file, self.l.WithField("prefix", "file")))
+	return nil
+}
+
 func (self *generator) Init() error {
+
+	self.l.Formatter = new(prefixed.TextFormatter)
 
 	var result error
 
 	self.once.Do(func() {
-		log.Printf("Initializing script engines")
+		self.l.Printf("Initializing script engines")
 		self.engines = make(map[scaffolt.IntepreterType]scaffolt.ScriptEngine)
 		self.engines[scaffolt.Javascript] = javascript.NewEngine()
 
-		log.Printf("Initialize tasks")
+		self.l.Printf("Initialize tasks")
 		for _, desc := range self.desc.Tasks {
 
-			task := NewTask(desc)
+			task := NewTask(desc, self.l.WithFields(logrus.Fields{
+				"prefix": "task:" + desc.Name,
+				//"task":   desc.Name,
+			}))
 
 			if err := task.Init(self); err != nil {
 				result = multierror.Append(result, err)
@@ -103,8 +121,8 @@ func (self *generator) Init() error {
 		}
 
 		for _, fileDesc := range self.desc.Files {
-			log.Printf("  Initializing file: %s\n", fileDesc.Source)
-			file := NewFile(fileDesc)
+			self.l.Printf("Initializing file: %s", fileDesc.Source)
+			file := NewFile(fileDesc, self.l.WithField("prefix", "file"))
 			if err := file.Init(self); err != nil {
 				result = multierror.Append(result, err)
 			}
@@ -118,15 +136,16 @@ func (self *generator) Init() error {
 	return result
 }
 
-func (self *generator) runFiles(ctx scaffolt.Context) error {
+func (self *generator) runFiles(ctx scaffolt.Context, dryrun bool) error {
 	var wg sync.WaitGroup
 	var lock sync.Mutex
 	var err error
 	for _, file := range self.files {
 		wg.Add(1)
+		ff := file
 		go func() {
 			defer wg.Done()
-			if e := file.Run(ctx); e != nil {
+			if e := ff.Run(ctx, dryrun); e != nil {
 				lock.Lock()
 				err = multierror.Append(err, e)
 				lock.Unlock()
@@ -143,5 +162,6 @@ func NewGenerator(path string, description scaffolt.GeneratorDescription) scaffo
 	return &generator{
 		path: path,
 		desc: description,
+		l:    logrus.New(),
 	}
 }

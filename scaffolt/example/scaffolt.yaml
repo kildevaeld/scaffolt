@@ -5,24 +5,29 @@ tasks:
     type: Javascript
     path: scripts/after-npm.js
    questions:
-     name:
-       type: input
-     version:
-       type: input
-       default: 0.0.1
-     language:
-        type: list
-        choices: ["javascript", "typescript"]
-     type:
-        type: checkbox
-        choices: ["nodejs", "browser"]
-     build:
-        type: list
-        choices: ["gulp", "grunt"]
-     test:
-        type: list
-        choices: ["mocha", "jasmine","none"]
+    - name: name
+      type: input
+      default: "{{.BASE}}"
+    - name: version
+      type: input
+      default: 0.0.1
+    - name: language
+      type: list
+      choices: ["javascript", "typescript"] 
+    - name: type
+      type: checkbox
+      choices: ["nodejs", "browser"]
+    - name: build
+      type: list
+      choices: ["gulp", "grunt"]
+        
+    - name: test
+      type: list
+      choices: ["mocha", "jasmine","none"]
 files:
  - source: src/index.js
    target: index.js
+   interpolate: true
+ - source: "src/{{.npm.build}}/build-{{.npm.language}}.js"
+   target: "{{.npm.build}}/build.js"
    interpolate: true

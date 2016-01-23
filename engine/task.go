@@ -1,11 +1,10 @@
 package engine
 
 import (
-	"log"
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
+	"github.com/Sirupsen/logrus"
 	"github.com/kildevaeld/blueprint/store/utils"
 	"github.com/kildevaeld/scaffolt"
 	"github.com/kildevaeld/scaffolt/vm"
@@ -63,12 +62,17 @@ func (self *taskContext) Move(source, target string, interpolate bool) {
 	self.ctx.Move(source, target, interpolate)
 }
 
+func (self *taskContext) Generator() scaffolt.Generator {
+	return self.ctx.Generator()
+}
+
 type task struct {
 	desc      scaffolt.TaskDescription
 	scripts   map[Hook]scaffolt.Script
 	files     []scaffolt.File
 	questions *Questions
 	once      sync.Once
+	l         *logrus.Entry
 }
 
 func (self *task) Run(ctx scaffolt.Context) error {
@@ -78,11 +82,11 @@ func (self *task) Run(ctx scaffolt.Context) error {
 	if err := self.runHook(Before, ctx); err != nil {
 		return err
 	}
-
+	self.l.Printf("Running questions")
 	if err := self.questions.Run(ctx); err != nil {
 		return err
 	}
-
+	self.l.Printf("Running files")
 	if err := self.runFiles(ctx); err != nil {
 		return err
 	}
@@ -95,7 +99,7 @@ func (self *task) Run(ctx scaffolt.Context) error {
 }
 
 func (self *task) runFiles(ctx scaffolt.Context) error {
-	var wg sync.WaitGroup
+	/*var wg sync.WaitGroup
 	var lock sync.Mutex
 	var err error
 	for _, file := range self.files {
@@ -110,14 +114,24 @@ func (self *task) runFiles(ctx scaffolt.Context) error {
 		}()
 	}
 	wg.Wait()
-
-	return err
+	*/
+	return nil
 
 }
 
 func (self *task) runHook(hook Hook, ctx scaffolt.Context) error {
+	var h string
+	switch hook {
+	case Before:
+		h = "before"
+	case After:
+		h = "after"
+	}
 
 	if script, ok := self.scripts[hook]; ok {
+		self.l.WithFields(logrus.Fields{
+			"type": script.Type().String(),
+		}).Printf("Running hook %s", h)
 		return script.Run(ctx)
 	}
 
@@ -129,32 +143,33 @@ func (self *task) Name() string {
 }
 
 func (self *task) Init(g scaffolt.Generator) error {
-	log.Printf("Initialize task: %s\n", self.desc.Name)
+	self.l.Printf("Initialize task: %s", self.desc.Name)
 	self.scripts = make(map[Hook]scaffolt.Script)
 
 	if self.desc.Before.Path != "" {
-		log.Printf("  Adding before: script %s, type: %s\n", self.desc.Before.Path, self.desc.Before.Type)
+		self.l.Printf("Adding before: script %s, type: %s", self.desc.Before.Path, self.desc.Before.Type)
 		self.scripts[Before] = vm.NewScript(g.Engine(self.desc.Before.Type), self.desc.Before)
 	}
 	if self.desc.After.Path != "" {
-		log.Printf("  Adding after: script %s, type: %s\n", self.desc.After.Path, self.desc.Before.Type)
+		self.l.Printf("Adding after: script %s, type: %s", self.desc.After.Path, self.desc.Before.Type)
 		self.scripts[After] = vm.NewScript(g.Engine(self.desc.After.Type), self.desc.After)
 	}
 
 	for _, script := range self.scripts {
-		log.Printf("  Initializing script: %s\n", script.Type())
+		self.l.Printf("Initializing script: %s", script.Type())
 		if err := script.Init(g); err != nil {
 			return err
 		}
 	}
 
 	for _, fileDesc := range self.desc.Files {
-		log.Printf("  Initializing file: %s\n", fileDesc.Source)
+		/*self.l.Printf("Initializing file: %s", fileDesc.Source)
 		file := NewFile(fileDesc)
 		if err := file.Init(g); err != nil {
 			return err
 		}
-		self.files = append(self.files, file)
+		self.files = append(self.files, file)*/
+		g.AddFile(fileDesc)
 	}
 
 	self.questions = NewQuestions(self.desc.Questions)
@@ -165,8 +180,9 @@ func (self *task) Init(g scaffolt.Generator) error {
 	return nil
 }
 
-func NewTask(desc scaffolt.TaskDescription) scaffolt.Task {
+func NewTask(desc scaffolt.TaskDescription, l *logrus.Entry) scaffolt.Task {
 	return &task{
 		desc: desc,
+		l:    l,
 	}
 }

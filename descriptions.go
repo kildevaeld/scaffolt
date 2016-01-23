@@ -12,7 +12,7 @@ type TaskDescription struct {
 	Before    ScriptDescription
 	After     ScriptDescription
 	Run       ScriptDescription
-	Questions map[string]QuestionDescription
+	Questions []QuestionDescription
 	Files     []FileDescription
 }
 
@@ -24,9 +24,12 @@ type ScriptDescription struct {
 type QuestionDescription struct {
 	Type    string
 	Default string
+	Name    string
+	Message string
 	Before  ScriptDescription
 	After   ScriptDescription
 	Choices []string
+	Files   []FileDescription
 }
 
 type FileDescription struct {
@@ -35,4 +38,5 @@ type FileDescription struct {
 	Interpolate bool
 	Before      ScriptDescription
 	After       ScriptDescription
+	Content     string
 }

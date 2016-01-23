@@ -1,6 +1,7 @@
 package scaffolt
 
 type Context interface {
+	Generator() Generator
 	Get(key string) interface{}
 	Set(key string, value interface{})
 	CreateFile(path string, content []byte) error
@@ -12,7 +13,7 @@ type Context interface {
 }
 
 type File interface {
-	Run(ctx Context) error
+	Run(ctx Context, dryrun bool) error
 	Init(g Generator) error
 }
 
@@ -34,6 +35,7 @@ type Generator interface {
 	Run(path string) error
 	Root() string
 	Engine(IntepreterType) ScriptEngine
+	AddFile(file FileDescription) error
 }
 
 type ScriptEngine interface {

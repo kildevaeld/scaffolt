@@ -27,7 +27,7 @@ func (self *engine) Run(path string, ctx scaffolt.Context) error {
 	if err != nil {
 		return err
 	}*/
-	c := &context{ctx, self.engine}
+	c, _ := self.engine.ToValue(&context{ctx, self.engine})
 	//self.engine.Set("context", c)
 	value, err := self.engine.Require(path, ctx.Source())
 
@@ -36,7 +36,10 @@ func (self *engine) Run(path string, ctx scaffolt.Context) error {
 	}
 
 	if value.IsFunction() {
-		value.Call(otto.UndefinedValue(), c)
+		_, err := value.Call(otto.UndefinedValue(), c)
+		if err != nil {
+			return err
+		}
 	} else if value.IsObject() {
 		v := value.Object()
 		prop := "run"
@@ -45,7 +48,10 @@ func (self *engine) Run(path string, ctx scaffolt.Context) error {
 		} else if Contains(v.Keys(), "Run") {
 			prop = "Run"
 		}
-		v.Call(prop, c)
+		_, err := v.Call(prop, c)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

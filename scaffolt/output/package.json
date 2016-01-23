@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "tslint": "*"
+  },
+  "devDependencies": {
+    "gulp": "*",
+    "gulp-typescript": "*",
+    "merge2": "*",
+    "mocha": "*",
+    "requiredir": "*",
+    "should": "*"
+  },
+  "main": "index.js",
+  "name": "output",
+  "scripts": {
+    "test": "node node_modules/.bin/mocha"
+  },
+  "test": "mocha",
+  "version": "0.0.1"
+}

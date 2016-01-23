@@ -11,10 +11,10 @@ function initTypescript (context, pkgjson) {
             'gulp-typescript': '*',
             'merge2': '*'    
         });
-        context.Move('src/gulp/tasks/typescript.js', 'gulp/tasks/typescript.js', true);
+        //context.Move('src/gulp/tasks/typescript.js', 'gulp/tasks/typescript.js', true);
     
     }
-    context.Move('src/tsconfig.json', 'tsconfig.json', true);
+    //context.Move('src/tsconfig.json', 'tsconfig.json', true);
     
 }
 
@@ -24,11 +24,12 @@ function initGulp (context, pkgjson) {
        requiredir: "*" 
     });
    
-    context.CreateFile('gulpfile.js', '"use strict";\nrequire("requiredir")(gulp/tasks", {recursive: true});')
+   context.Move("src/gulp/gulpfile.js", "gulpfile.js", true);
+    //context.CreateFile('gulpfile.js', '"use strict";\nrequire("requiredir")(gulp/tasks", {recursive: true});')
     
-    context.Move('src/gulp/tasks/build.js', 'gulp/tasks/build.js', true);
-    context.Move('src/gulp/tasks/default.js', 'gulp/tasks/default.js', true);
-    context.Move('src/gulp/config.js', 'gulp/config.js', true);
+    //context.Move('src/gulp/tasks/build.js', 'gulp/tasks/build.js', true);
+    //context.Move('src/gulp/tasks/default.js', 'gulp/tasks/default.js', true);
+    //context.Move('src/gulp/config.js', 'gulp/config.js', true);
 }
 
 function initTest(context, pkgjson) {
@@ -81,5 +82,5 @@ module.exports = function (context) {
     context.CreateFile('package.json', json);
     context.CreateFile('.gitignore', 'node_modules\n.DS_Store\n*.log')
     
-    //context.Exec("npm", "install", '--save', '--save-dev');
+    context.Exec("npm", "install", '--save', '--save-dev');
 }

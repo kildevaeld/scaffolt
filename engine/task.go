@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/kildevaeld/blueprint/store/utils"
+	"github.com/kildevaeld/dict"
 	"github.com/kildevaeld/scaffolt"
 	"github.com/kildevaeld/scaffolt/vm"
 )
@@ -76,7 +76,7 @@ type task struct {
 }
 
 func (self *task) Run(ctx scaffolt.Context) error {
-	ctx.Set(self.desc.Name, utils.NewMap())
+	ctx.Set(self.desc.Name, dict.NewMap())
 	ctx = &taskContext{ctx, self.desc.Name}
 
 	if err := self.runHook(Before, ctx); err != nil {

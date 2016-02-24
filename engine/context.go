@@ -6,14 +6,14 @@ import (
 	"sync"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/kildevaeld/blueprint/store/utils"
+	"github.com/kildevaeld/dict"
 	"github.com/kildevaeld/scaffolt"
 )
 
 type context struct {
 	target    string
 	generator scaffolt.Generator
-	m         utils.Map
+	m         dict.Map
 	lock      sync.RWMutex
 	l         *logrus.Entry
 }
@@ -78,7 +78,7 @@ func NewContext(gen scaffolt.Generator, target string, log *logrus.Entry) scaffo
 	return &context{
 		target:    target,
 		generator: gen,
-		m:         utils.NewMap(),
+		m:         dict.NewMap(),
 		l:         log,
 	}
 }

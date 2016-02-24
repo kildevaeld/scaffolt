@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/kildevaeld/blueprint/store/utils"
+	"github.com/kildevaeld/dict"
 	"github.com/kildevaeld/motto"
 	"github.com/kildevaeld/scaffolt"
 	"github.com/robertkrimen/otto"
@@ -53,7 +53,7 @@ func toValue(vm *motto.Motto, value interface{}) otto.Value {
 	var err error
 	var val otto.Value
 	switch n := value.(type) {
-	case utils.Map, map[string]interface{}:
+	case dict.Map, map[string]interface{}:
 		bs, e := json.Marshal(n)
 		if e != nil {
 			err = e

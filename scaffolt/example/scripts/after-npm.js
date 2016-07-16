@@ -14,7 +14,9 @@ function initTypescript (context, pkgjson) {
         //context.Move('src/gulp/tasks/typescript.js', 'gulp/tasks/typescript.js', true);
     
     }
-    //context.Move('src/tsconfig.json', 'tsconfig.json', true);
+
+    context.CreateFile("src/index.ts", "//")
+    context.Move('src/tsconfig.json', 'tsconfig.json', true);
     
 }
 
@@ -25,6 +27,7 @@ function initGulp (context, pkgjson) {
     });
    
    context.Move("src/gulp/gulpfile.js", "gulpfile.js", true);
+   context.Move("src/gulp/default.js", "gulp/default.js", true);
     //context.CreateFile('gulpfile.js', '"use strict";\nrequire("requiredir")(gulp/tasks", {recursive: true});')
     
     //context.Move('src/gulp/tasks/build.js', 'gulp/tasks/build.js', true);

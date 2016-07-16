@@ -29,5 +29,8 @@ files:
    target: index.js
    interpolate: true
  - source: "src/{{.npm.build}}/build-{{.npm.language}}.js"
+   target: "{{.npm.build}}/build-{{.npm.language}}.js"
+   interpolate: true
+ - source: "src/{{.npm.build}}/build.js"
    target: "{{.npm.build}}/build.js"
    interpolate: true

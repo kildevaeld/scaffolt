@@ -42,7 +42,15 @@ func (self *context) Exec(c string, args ...string) error {
 	cmd := exec.Command(c, args...)
 	cmd.Env = os.Environ()
 	cmd.Dir = self.target
-	return cmd.Run()
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	self.l.Infof("Exec %s", c)
+	err := cmd.Run()
+
+	if err != nil {
+		self.l.Printf("%v", err)
+	}
+	return err
 }
 
 func (self *context) Move(source, target string, interpolate bool) {

@@ -4,4 +4,4 @@ const gulp = require('gulp'),
     config = require('../config');
     
     
-gulp.task('build')
+gulp.task('build', ['{{.npm.language}}'])

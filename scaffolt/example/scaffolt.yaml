@@ -34,3 +34,6 @@ files:
  - source: "src/{{.npm.build}}/build.js"
    target: "{{.npm.build}}/build.js"
    interpolate: true
+ - source: "src/config.js"
+   target: "config.js"
+   interpolate: true

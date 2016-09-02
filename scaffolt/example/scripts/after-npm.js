@@ -9,8 +9,12 @@ function initTypescript (context, pkgjson) {
     if (pkgjson.build === 'gulp') {
         _.extend(pkgjson.devDependencies, {
             'gulp-typescript': '*',
-            'merge2': '*'    
+            'merge2': '*',
+            
+            
         });
+
+        pkgjson.typings = "lib/index";
         //context.Move('src/gulp/tasks/typescript.js', 'gulp/tasks/typescript.js', true);
     
     }
@@ -23,7 +27,8 @@ function initTypescript (context, pkgjson) {
 function initGulp (context, pkgjson) {
     _.extend(pkgjson.devDependencies, {
        gulp: "*",
-       requiredir: "*" 
+       requiredir: "*",
+       "recursive-readdir": "*",
     });
    
    context.Move("src/gulp/gulpfile.js", "gulpfile.js", true);
